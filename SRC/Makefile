@@ -48,6 +48,26 @@ sharedobject: EXECUTABLE=$(executable.sharedobject)
 sharedobject: CFLAGS=-c -std=c++11  -Wall  -funsigned-char  -Wno-write-strings -Wno-char-subscripts -Wno-strict-aliasing  -fPIC -g
 sharedobject: LDFLAGS=-shared -lcurl
 
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), Windows)
+    executable.sharedobject=../BINARIES/chatscript.dll
+endif
+ifeq ($(UNAME), Darwin)
+    executable.sharedobject=../BINARIES/libchatscript.dylib
+endif
+sharedobject: DEFINES+= -DDEBUG -DDLL=1 -DDISCARDSERVER=1 -DDISCARDPOSTGRES=1 -DDISCARDMONGO=1 -DDISCARDMYSQL=1 -DDISCARDMICROSOFTSQL=1
+sharedobject: PGLOAD= -pthread
+sharedobject: INCLUDEDIRS=-Ievserver
+sharedobject: binary
+sharedobject: EXECUTABLE=$(executable.sharedobject)
+#sharedobject: CFLAGS=-c -std=c++11  -Wall  -funsigned-char  -Wno-write-strings -Wno-char-subscripts -Wno-strict-aliasing  -fPIC -g
+ifeq ($(UNAME), Darwin)
+    sharedobject: LDFLAGS+=-shared -Wl,-install_name,@rpath/libchatscript.dylib
+else
+    sharedobject: LDFLAGS+=-shared
+endif
+
 executable.mongoserver=../BINARIES/ChatScriptMongo
 mongoserver: DEFINES+= -DDISCARDPOSTGRES=1 -DDISCARDMYSQL=1 -DDISCARDMICROSOFTSQL=1
 mongoserver: PGLOAD= -pthread -lmongoc-1.0 -lbson-1.0
@@ -121,9 +141,14 @@ debugmssqlserver: EXECUTABLE=$(executable.debugmssqlserver)
 debugmssqlserver: CFLAGS=-c -std=c++11 -Wall  -funsigned-char  -Wno-write-strings -Wno-char-subscripts -Wno-strict-aliasing -g
 debugmssqlserver: LDFLAGS=$(ODBCLIB) -lz -lcurl -g
 
-UNAME := $(shell uname)
-
 CC=g++
+
+ifeq ($(UNAME), Windows)
+$(info ************ WINDOWS VERSION ************)
+
+CFLAGS= -c -std=c++11  -Wall  -funsigned-char  -Wno-write-strings -Wno-char-subscripts -Wno-strict-aliasing  -fPIC -g
+
+endif
 
 ifeq ($(UNAME), Linux)
 $(info ************ LINUX VERSION ************)
@@ -139,17 +164,18 @@ endif
 
 ifeq ($(UNAME), Darwin)
 OSXRELEASE := $(shell defaults read loginwindow SystemVersionStampAsString)
-$(info ************ MAC VERSION $OSXRELEASE detected ************)
+MIN_OSXRELEASE := 10.15
+$(info ************ MAC VERSION $(OSXRELEASE) detected ************)
 
-DEFINES+= -DLOCKUSERFILE=1 -DEVSERVER=1 -DEVSERVER_FORK=1  
+# DEFINES+= -DLOCKUSERFILE=1 -DEVSERVER=1 -DEVSERVER_FORK=1
 # To add treetagger, comment above and uncomment below
 # DEFINES+= -DLOCKUSERFILE=1  -DEVSERVER=1 -DEVSERVER_FORK=1  -DTREETAGGER=1
 
-LDFLAGS=-mmacosx-version-min=$(OSXRELEASE) -lcurl  -L../BINARIES -L/usr/local/lib $(PGLOAD)    -lodbc -lmsodbcsql.17 -Wno-write-strings -fpermissive --std=c++11 -lz  
+LDFLAGS=-mmacosx-version-min=$(MIN_OSXRELEASE) -lcurl  -L../BINARIES -L/usr/local/lib $(PGLOAD) -Wno-write-strings -fpermissive --std=c++11 -lz
 # To add treetagger, comment above and uncomment below
 # LDFLAGS=-mmacosx-version-min=$(OSXRELEASE) -lcurl  -L../BINARIES -L/usr/local/lib $(PGLOAD)    -lodbc -lmsodbcsql.17 -Wno-write-strings -fpermissive --std=c++11 -lz   -ltreetagger
 
-CFLAGS=-mmacosx-version-min=$(OSXRELEASE) -c  -Wall  -funsigned-char -Wno-write-strings -Wno-char-subscripts  -Wunused-variable
+CFLAGS=-mmacosx-version-min=$(MIN_OSXRELEASE) -c -std=c++11 -Wall  -funsigned-char -Wno-write-strings -Wno-char-subscripts  -Wunused-variable
 endif
 
 ifeq ($(UNAME), FreeBSD)

@@ -241,7 +241,7 @@ void EmitOutput();
 
 // startup
 #ifdef DLL
-#ifdef __linux__
+#if defined(__LINUX__) || defined(__APPLE__)
 extern "C" unsigned int InitSystem(int argc, char* argv[], char* unchangedPath = NULL, char* readonlyPath = NULL, char* writablePath = NULL, USERFILESYSTEM* userfiles = NULL, DEBUGAPI in = NULL, DEBUGAPI out = NULL);
 #else
 extern "C" __declspec(dllexport) unsigned int InitSystem(int argc, char* argv[], char* unchangedPath = NULL, char* readonlyPath = NULL, char* writablePath = NULL, USERFILESYSTEM* userfiles = NULL, DEBUGAPI in = NULL, DEBUGAPI out = NULL);
@@ -256,7 +256,7 @@ void CreateSystem();
 void LoadSystem();
 
 #ifdef DLL
-#ifdef __linux__
+#if defined(__LINUX__) || defined(__APPLE__)
 extern "C" void CloseSystem();
 #else
 extern "C" __declspec(dllexport) void CloseSystem();
@@ -282,7 +282,7 @@ int ProcessInput();
 FunctionResult DoSentence(char* incoming,char* prepassTopic,bool atlimit);
 
 #ifdef DLL
-#ifdef __linux__
+#if defined(__LINUX__) || defined(__APPLE__)
 extern "C" int PerformChat(char* user, char* usee, char* incoming, char* ip, char* output);
 extern "C" int PerformChatGivenTopic(char* user, char* usee, char* incoming, char* ip, char* output, char* topic);
 #else
